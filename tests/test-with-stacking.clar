@@ -105,7 +105,7 @@
     )
 )
 
-;; reward cycle boundary
+;; reward cycle boundary -- tokens are locked!
 
 (define-public (block-6)
     (begin
@@ -116,6 +116,18 @@
 
         (asserts! (is-eq u1 (burn-height-to-reward-cycle burn-block-height))
             (err "Reward cycle is not 1"))
+
+        ;; should fail -- we're too late
+        (match (stack-stx-tranche { version: 0x01, hashbytes: 0x0000000000000000000000000000000000000000 })
+            pox-result
+                (asserts! false (err "Stacked a second time"))
+            error
+                (begin
+                    (print "PoX failed, as expected, with error:")
+                    (print error)
+                    (asserts! (is-eq error 24) (err "Did not get error 24"))
+                )
+        )
 
         ;; can't redeem -- all tokens locked
         (asserts! (is-eq (err ERR-NOT-YET-REDEEMABLE) (redeem-stx-futures u123))
@@ -183,6 +195,14 @@
         (asserts! (is-eq u1 (burn-height-to-reward-cycle burn-block-height))
             (err "Reward cycle is not 1"))
 
+        ;; can't redeem -- all tokens locked
+        (asserts! (is-eq (err ERR-NOT-YET-REDEEMABLE) (redeem-stx-futures u123))
+            (err "Allowed early redemption"))
+        
+        ;; can't buy more futures -- in progress
+        (asserts! (is-eq (err ERR-IN-PROGRESS) (buy-stx-futures u1))
+            (err "Allowed buying more futures"))
+
         (ok u0)
     )
 )
@@ -209,7 +229,7 @@
     )
 )
 
-;; reward cycle boundary
+;; reward cycle boundary -- tokens unlocked!
 
 (define-public (block-11)
     (begin
