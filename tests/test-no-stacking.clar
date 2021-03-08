@@ -127,6 +127,18 @@
         (asserts! (is-eq u1 (burn-height-to-reward-cycle burn-block-height))
             (err "Reward cycle is not 1"))
 
+        ;; should fail -- we're too late
+        (match (stack-stx-tranche { version: 0x01, hashbytes: 0x0000000000000000000000000000000000000000 })
+            pox-result
+                (asserts! false (err "Stacked too late"))
+            error
+                (begin
+                    (print "PoX failed, as expected, with error:")
+                    (print error)
+                    (asserts! (is-eq error 24) (err "Did not get error 24"))
+                )
+        )
+
         (asserts! (is-eq u1 (stx-get-balance tx-sender))
             (err "failed to get principal balance before redeeming u123 futures"))
         (asserts! (is-eq (ok u29900) (get-balance-of tx-sender))
