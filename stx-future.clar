@@ -67,7 +67,6 @@
 (define-public (buy-stx-futures (amount-ustx uint))
     (let (
         (cur-reward-cycle (burn-height-to-reward-cycle burn-block-height))
-        (unlock-cycle (+ u1 FIRST-REWARD-CYCLE REWARD-CYCLE-LOCK-PERIOD))
         (locked? (var-get locked))
     )
     (begin
@@ -160,13 +159,13 @@
             (asserts! (< u0 contract-balance)
                 (err 18))   ;; ERR_STACKING_INVALID_AMOUNT in .pox
 
-            ;; can only do this successfully once
-            (asserts! (not already-locked)
-                (err 3))    ;; ERR_STACKING_ALREADY_STACKED in .pox
-
             ;; must happen before the intended start of locking
             (asserts! (< cur-reward-cycle FIRST-REWARD-CYCLE)
                 (err 24))   ;; ERR_INVALID_START_BURN_HEIGHT in .pox
+
+            ;; can only do this successfully once
+            (asserts! (not already-locked)
+                (err 3))    ;; ERR_STACKING_ALREADY_STACKED in .pox
 
             (let (
                 ;; do the actual stacking.
